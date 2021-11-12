@@ -48,9 +48,7 @@ if __name__ == "__main__":
                         if dip.y < lm.y:
                             # Finger is down, color Red
                             is_up_color = (0, 0, 255)
-                            print("Down", dip.z, lm.z)
                         else:
-                            print("Up", dip.z, lm.z)
                             finger_count += 1
                         
                         cv2.circle(

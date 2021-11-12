@@ -1,16 +1,28 @@
 from dataclasses import dataclass
+from numpy import ndarray
 from typing import Tuple
 import mediapipe as mp
 import cv2
 
 
+# See "google.github.io/mediapipe/images/mobile/hand_landmarks.png" for point reference
 FINGER_TIPS = [ 4, 8, 12, 16, 20 ]
-mp_draw = mp.solutions.drawing_utils
-mp_hands = mp.solutions.hands
+MP_DRAW = mp.solutions.drawing_utils
+MP_HANDS = mp.solutions.hands
 
 
 @dataclass
 class TrackerColors:
+    """
+        ## Fields
+        ```py
+        point_color: Tuple[int; 3] # Color of the hand's points
+        connection_color: Tuple[int; 3] # Colors of the lines connecting the hand's points
+        finger_tip_up_color: Tuple[int; 3] # Color of the circle surrounding a finger tip's point when it is up
+        finger_tip_down_color: Tuple[int; 3] # Color of the circle surrounding a finger tip's point when it is down
+        ```
+    """
+    
     point_color: Tuple[int]
     connection_color: Tuple[int]
     finger_tip_up_color: Tuple[int]
@@ -18,19 +30,50 @@ class TrackerColors:
 
 
 class HandTracker(object):
+    """
+        Class for processing an image and tracking the hands within it.
+        
+        ## Fields:
+        ```py
+        hand_count: int # Number of hands in frame, number of hands to track determined by `hands`
+        finger_count: int # Number of Finger tips pointing up
+        colors: TrackerColors # Colors for the tracker
+        hands: Hands # Media Pipe Hands for tracking settings
+        ```
+    """
+    
     hand_count: int
     finger_count: int
     colors: TrackerColors
-    hands: mp_hands.Hands
+    hands: MP_HANDS.Hands
     
-    def __init__(self, colors: TrackerColors, hands = mp_hands.Hands()) -> None:
+    def __init__(self, colors: TrackerColors, hands: MP_HANDS.Hands = MP_HANDS.Hands()) -> None:
+        """
+            Class for processing an image and tracking the hands within it.
+            
+            ## Parameters:
+            ```py
+            colors: TrackerColors # Colors for the tracker
+            hands: Hands = Hands() # Media Pipe Hands Class for tracking settings
+            ```
+        """
+        
         self.hands = hands
         self.colors = colors
         self.hand_count = 0
         self.finger_count = 0
         super().__init__()
     
-    def process(self, image) -> None:
+    def process(self, image: ndarray) -> None:
+        """
+            Process the `image` for hands, manipulating the image with received information.
+            
+            ## Parameters:
+            ```py
+            image: ndarray # Image to be processed
+            ```
+        """
+        
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         results = self.hands.process(image_rgb)
         
@@ -42,12 +85,12 @@ class HandTracker(object):
 
             for hand_lm in results.multi_hand_landmarks:
                 # For each hand visible draw the connections and landmarks
-                mp_draw.draw_landmarks(
+                MP_DRAW.draw_landmarks(
                     image=image,
                     landmark_list=hand_lm,
-                    connections=mp_hands.HAND_CONNECTIONS,
-                    landmark_drawing_spec = mp_draw.DrawingSpec(color=self.colors.point_color), # Point Spec
-                    connection_drawing_spec = mp_draw.DrawingSpec(color=self.colors.connection_color), # Line Spec
+                    connections=MP_HANDS.HAND_CONNECTIONS,
+                    landmark_drawing_spec = MP_DRAW.DrawingSpec(color=self.colors.point_color), # Point Spec
+                    connection_drawing_spec = MP_DRAW.DrawingSpec(color=self.colors.connection_color), # Line Spec
                 )
                 
                 # For each hand visible draw finger tips,

@@ -34,10 +34,10 @@ class HandTracker(object):
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         results = self.hands.process(image_rgb)
         
-        hand_count: int = 0 # Number of Hands in Frame
-        finger_count: int = 0 # Number of Fingers being help up
+        self.hand_count = 0 # Number of Hands in Frame
+        self.finger_count = 0 # Number of Fingers being help up
         if results.multi_hand_landmarks:
-            hand_count = len(results.multi_hand_landmarks)
+            self.hand_count = len(results.multi_hand_landmarks)
             height, width, _ = image.shape
 
             for hand_lm in results.multi_hand_landmarks:
@@ -62,7 +62,7 @@ class HandTracker(object):
                             # Finger is down
                             is_up_color = self.colors.finger_tip_down_color
                         else:
-                            finger_count += 1
+                            self.finger_count += 1
                         
                         cv2.circle(
                             img=image,

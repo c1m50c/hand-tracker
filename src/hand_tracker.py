@@ -1,6 +1,6 @@
 from dataclasses import dataclass
+from typing import List, Tuple
 from numpy import ndarray
-from typing import Tuple
 import mediapipe as mp
 import cv2
 
@@ -84,6 +84,11 @@ class HandTracker(object):
             height, width, _ = image.shape
 
             for hand_lm in results.multi_hand_landmarks:
+                # Get average of hand's `MCP.y` positional values for calcualting if finger is up
+                MCPS_Y: List[float] = [
+                    hand_lm.landmark[5].y, hand_lm.landmark[9].y, hand_lm.landmark[13].y, hand_lm.landmark[17].y]
+                MCP_Y_AVG: float = sum(MCPS_Y) / len(MCPS_Y)
+                
                 # For each hand visible draw the connections and landmarks
                 MP_DRAW.draw_landmarks(
                     image=image,
@@ -100,8 +105,7 @@ class HandTracker(object):
                     is_up_color = self.colors.finger_tip_up_color # Finger is Up
                     
                     if idx in FINGER_TIPS:
-                        dip = hand_lm.landmark[idx - 1]
-                        if dip.y < lm.y:
+                        if MCP_Y_AVG < lm.y:
                             # Finger is down
                             is_up_color = self.colors.finger_tip_down_color
                         else:

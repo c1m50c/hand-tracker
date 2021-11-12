@@ -25,17 +25,29 @@ if __name__ == "__main__":
         image.flags.writeable = True
         if results.multi_hand_landmarks:
             hand_count = len(results.multi_hand_landmarks)
+            height, width, _ = image.shape
+
             for hand_lm in results.multi_hand_landmarks:
-                # For each hand visible draw finger tips
+                # For each hand visible draw finger tips,
+                    # and calculate how many fingers are help up
                 for idx, lm in enumerate(hand_lm.landmark):
-                    height, width, _ = image.shape
                     x, y = int(lm.x * width), int(lm.y * height)
+                    is_up_color = (0, 255, 0) # Begin as Green (Finger is up)
+                    
                     if idx in FINGER_TIPS:
+                        prev_lm = hand_lm.landmark[idx - 1]
+                        
+                        if prev_lm.x < lm.x and prev_lm.y < lm.y:
+                            # Finger is down
+                            is_up_color = (0, 0, 255)
+                        else:
+                            number_count += 1
+                        
                         cv2.circle(
                             img=image,
                             center=(x, y),
                             radius=10,
-                            color=(0, 0, 255),
+                            color=is_up_color,
                             thickness=2,
                         )
                 
